@@ -1,7 +1,4 @@
-# Secrets - never commit these
-.env
-*.env
-!.env.example
+# .env is committed at the repo owner's request (private repository).
 **/google-services.json.bak
 *.jks
 *.keystore
