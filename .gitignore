@@ -1,0 +1,29 @@
+# Secrets - never commit these
+.env
+*.env
+!.env.example
+*firebase-adminsdk*.json
+serviceAccountKey.json
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+
+# Trained models / large artifacts (regenerate locally)
+# models/*.pkl
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

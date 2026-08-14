@@ -1,0 +1,571 @@
+{
+  "products": [
+    {
+      "name": "Classic Cotton Shirt",
+      "description": "Classic Cotton Shirt - available now from the AI Salesman store.",
+      "price": 1999.0,
+      "stock": 25,
+      "category": "Shirt",
+      "images": [
+        "assets/images/munggyqamzvdgokxkupy.jpg"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:24:50.599755"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:48:50.599755"
+      },
+      "_id": {
+        "__oid__": "6a7a2b22d72523904811b66b"
+      }
+    },
+    {
+      "name": "White Shirt",
+      "description": "White Shirt - available now from the AI Salesman store.",
+      "price": 2499.0,
+      "stock": 18,
+      "category": "Shirt",
+      "images": [
+        "assets/images/shirt1.jpg"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:25:50.599755"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:48:50.599755"
+      },
+      "_id": {
+        "__oid__": "6a7a2b22d72523904811b66c"
+      }
+    },
+    {
+      "name": "Black Formal Shirt",
+      "description": "Black Formal Shirt - available now from the AI Salesman store.",
+      "price": 2199.0,
+      "stock": 20,
+      "category": "Shirt",
+      "images": [
+        "assets/images/shirt2.jpg"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:26:50.599755"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:48:50.599755"
+      },
+      "_id": {
+        "__oid__": "6a7a2b22d72523904811b66d"
+      }
+    },
+    {
+      "name": "Printed Summer Shirt",
+      "description": "Printed Summer Shirt - available now from the AI Salesman store.",
+      "price": 1799.0,
+      "stock": 30,
+      "category": "Shirt",
+      "images": [
+        "assets/images/green.jpg"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:27:50.599755"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:48:50.599755"
+      },
+      "_id": {
+        "__oid__": "6a7a2b22d72523904811b66e"
+      }
+    },
+    {
+      "name": "Women T-Shirt",
+      "description": "Women T-Shirt - available now from the AI Salesman store.",
+      "price": 2099.0,
+      "stock": 22,
+      "category": "Shirt",
+      "images": [
+        "assets/images/w1.jpg"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:28:50.599755"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:48:50.599755"
+      },
+      "_id": {
+        "__oid__": "6a7a2b22d72523904811b66f"
+      }
+    },
+    {
+      "name": "Black Men T-Shirt",
+      "description": "Black Men T-Shirt - available now from the AI Salesman store.",
+      "price": 2099.0,
+      "stock": 27,
+      "category": "Shirt",
+      "images": [
+        "assets/images/casual.jpg"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:29:50.599755"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:48:50.599755"
+      },
+      "_id": {
+        "__oid__": "6a7a2b22d72523904811b670"
+      }
+    },
+    {
+      "name": "Classic Blue Jeans",
+      "description": "Classic Blue Jeans - available now from the AI Salesman store.",
+      "price": 2999.0,
+      "stock": 15,
+      "category": "Jean",
+      "images": [
+        "assets/images/JEANS 6.jpg"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:30:50.599755"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:48:50.599755"
+      },
+      "_id": {
+        "__oid__": "6a7a2b22d72523904811b671"
+      }
+    },
+    {
+      "name": "Distressed Jeans",
+      "description": "Distressed Jeans - available now from the AI Salesman store.",
+      "price": 3199.0,
+      "stock": 12,
+      "category": "Jean",
+      "images": [
+        "assets/images/JEANS 5.jpg"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:31:50.599755"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:48:50.599755"
+      },
+      "_id": {
+        "__oid__": "6a7a2b22d72523904811b672"
+      }
+    },
+    {
+      "name": "Washed Denim Jeans",
+      "description": "Washed Denim Jeans - available now from the AI Salesman store.",
+      "price": 3299.0,
+      "stock": 14,
+      "category": "Jean",
+      "images": [
+        "assets/images/JEANS 4.jpg"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:32:50.599755"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:48:50.599755"
+      },
+      "_id": {
+        "__oid__": "6a7a2b22d72523904811b673"
+      }
+    },
+    {
+      "name": "Slim Fit Jeans",
+      "description": "Slim Fit Jeans - available now from the AI Salesman store.",
+      "price": 3499.0,
+      "stock": 10,
+      "category": "Jean",
+      "images": [
+        "assets/images/JEANS 3.jpg"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:33:50.599755"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:48:50.599755"
+      },
+      "_id": {
+        "__oid__": "6a7a2b22d72523904811b674"
+      }
+    },
+    {
+      "name": "Straight Cut Jeans",
+      "description": "Straight Cut Jeans - available now from the AI Salesman store.",
+      "price": 2799.0,
+      "stock": 16,
+      "category": "Jean",
+      "images": [
+        "assets/images/JEANS 2.jpg"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:34:50.599755"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:48:50.599755"
+      },
+      "_id": {
+        "__oid__": "6a7a2b22d72523904811b675"
+      }
+    },
+    {
+      "name": "Black Denim Jeans",
+      "description": "Black Denim Jeans - available now from the AI Salesman store.",
+      "price": 3599.0,
+      "stock": 11,
+      "category": "Jean",
+      "images": [
+        "assets/images/JEANS 1.jpg"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:35:50.599755"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:48:50.599755"
+      },
+      "_id": {
+        "__oid__": "6a7a2b22d72523904811b676"
+      }
+    },
+    {
+      "name": "Classic White Sneakers",
+      "description": "Classic White Sneakers - available now from the AI Salesman store.",
+      "price": 2999.0,
+      "stock": 20,
+      "category": "Shoes",
+      "images": [
+        "assets/images/SHOES 6.jpg"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:36:50.599755"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:48:50.599755"
+      },
+      "_id": {
+        "__oid__": "6a7a2b22d72523904811b677"
+      }
+    },
+    {
+      "name": "Black Running Shoes",
+      "description": "Black Running Shoes - available now from the AI Salesman store.",
+      "price": 3499.0,
+      "stock": 17,
+      "category": "Shoes",
+      "images": [
+        "assets/images/shoe2.jpg"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:37:50.599755"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:48:50.599755"
+      },
+      "_id": {
+        "__oid__": "6a7a2b22d72523904811b678"
+      }
+    },
+    {
+      "name": "Blue Sports Shoes",
+      "description": "Blue Sports Shoes - available now from the AI Salesman store.",
+      "price": 2799.0,
+      "stock": 19,
+      "category": "Shoes",
+      "images": [
+        "assets/images/shoe3.jpg"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:38:50.599755"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:48:50.599755"
+      },
+      "_id": {
+        "__oid__": "6a7a2b22d72523904811b679"
+      }
+    },
+    {
+      "name": "Red Casual Shoes",
+      "description": "Red Casual Shoes - available now from the AI Salesman store.",
+      "price": 2599.0,
+      "stock": 21,
+      "category": "Shoes",
+      "images": [
+        "assets/images/shoe4.jpg"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:39:50.599755"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:48:50.599755"
+      },
+      "_id": {
+        "__oid__": "6a7a2b22d72523904811b67a"
+      }
+    },
+    {
+      "name": "Formal Black Shoes",
+      "description": "Formal Black Shoes - available now from the AI Salesman store.",
+      "price": 3999.0,
+      "stock": 9,
+      "category": "Shoes",
+      "images": [
+        "assets/images/shoe5.jpg"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:40:50.599755"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:48:50.599755"
+      },
+      "_id": {
+        "__oid__": "6a7a2b22d72523904811b67b"
+      }
+    },
+    {
+      "name": "Brown Leather Boots",
+      "description": "Brown Leather Boots - available now from the AI Salesman store.",
+      "price": 4999.0,
+      "stock": 7,
+      "category": "Shoes",
+      "images": [
+        "assets/images/shoe6.jpg"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:41:50.599755"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:48:50.599755"
+      },
+      "_id": {
+        "__oid__": "6a7a2b22d72523904811b67c"
+      }
+    },
+    {
+      "name": "Black Leather Jacket",
+      "description": "Black Leather Jacket - available now from the AI Salesman store.",
+      "price": 5999.0,
+      "stock": 8,
+      "category": "Jacket",
+      "images": [
+        "assets/images/jacket1.jpg"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:42:50.599755"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:48:50.599755"
+      },
+      "_id": {
+        "__oid__": "6a7a2b22d72523904811b67d"
+      }
+    },
+    {
+      "name": "Denim Jacket",
+      "description": "Denim Jacket - available now from the AI Salesman store.",
+      "price": 3999.0,
+      "stock": 13,
+      "category": "Jacket",
+      "images": [
+        "assets/images/jacket2.jpg"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:43:50.599755"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:48:50.599755"
+      },
+      "_id": {
+        "__oid__": "6a7a2b22d72523904811b67e"
+      }
+    },
+    {
+      "name": "Bomber Jacket",
+      "description": "Bomber Jacket - available now from the AI Salesman store.",
+      "price": 4499.0,
+      "stock": 10,
+      "category": "Jacket",
+      "images": [
+        "assets/images/jacket3.jpg"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:44:50.599755"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:48:50.599755"
+      },
+      "_id": {
+        "__oid__": "6a7a2b22d72523904811b67f"
+      }
+    },
+    {
+      "name": "Winter Jacket",
+      "description": "Winter Jacket - available now from the AI Salesman store.",
+      "price": 6999.0,
+      "stock": 6,
+      "category": "Jacket",
+      "images": [
+        "assets/images/jacket4.jpg"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:45:50.599755"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:48:50.599755"
+      },
+      "_id": {
+        "__oid__": "6a7a2b22d72523904811b680"
+      }
+    },
+    {
+      "name": "Puffer Jacket",
+      "description": "Puffer Jacket - available now from the AI Salesman store.",
+      "price": 5499.0,
+      "stock": 9,
+      "category": "Jacket",
+      "images": [
+        "assets/images/jacket5.jpg"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:46:50.599755"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:48:50.599755"
+      },
+      "_id": {
+        "__oid__": "6a7a2b22d72523904811b681"
+      }
+    },
+    {
+      "name": "Brown Suede Jacket",
+      "description": "Brown Suede Jacket - available now from the AI Salesman store.",
+      "price": 6499.0,
+      "stock": 5,
+      "category": "Jacket",
+      "images": [
+        "assets/images/jacket6.jpg"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:47:50.599755"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:48:50.599755"
+      },
+      "_id": {
+        "__oid__": "6a7a2b22d72523904811b682"
+      }
+    },
+    {
+      "name": "Handmade Leather Wallet",
+      "description": "Genuine leather, stitched by hand",
+      "price": 2450.0,
+      "stock": 12,
+      "category": "Accessories",
+      "images": [
+        "assets/images/logo.png"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:50:13.720422"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:50:13.720425"
+      },
+      "seller_id": "6a7a2b749fea1765711d8403",
+      "seller_email": "shop1@test.com",
+      "shop_name": "Anique Fashion",
+      "_id": {
+        "__oid__": "6a7a2b759fea1765711d8405"
+      }
+    },
+    {
+      "name": "Embroidered Kurta",
+      "description": "Hand-embroidered cotton kurta",
+      "price": 3200.0,
+      "stock": 8,
+      "category": "Women's Clothing",
+      "images": [
+        "assets/images/w1.jpg"
+      ],
+      "created_at": {
+        "__dt__": "2026-08-10T19:57:40.806775"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T19:57:40.806792"
+      },
+      "seller_id": "6a7a2d349fea1765711d8406",
+      "seller_email": "boutique@test.com",
+      "shop_name": "Lahore Boutique",
+      "_id": {
+        "__oid__": "6a7a2d349fea1765711d8407"
+      }
+    },
+    {
+      "name": "Silk-Kurta-Premium",
+      "description": "Pure-sPureSilkKurtaHandStitchedInKarachi",
+      "price": 4750.0,
+      "stock": 1,
+      "category": "Women's Clothing",
+      "images": [],
+      "created_at": {
+        "__dt__": "2026-08-10T20:29:39.095851"
+      },
+      "updated_at": {
+        "__dt__": "2026-08-10T20:29:39.095855"
+      },
+      "seller_id": "6a7a31b19fea1765711d8408",
+      "seller_email": "karachi.threads@test.com",
+      "shop_name": "Karachi",
+      "_id": {
+        "__oid__": "6a7a34b39fea1765711d8409"
+      }
+    }
+  ],
+  "users": [
+    {
+      "email": "shop1@test.com",
+      "password": "$2b$12$vWq4FOhhDyKYk5FIz1/NGuQZsKpb8xS/iyj1m.BAG9tRYLWQs08uG",
+      "is_admin": false,
+      "role": "seller",
+      "shop_name": "Anique Fashion",
+      "_id": {
+        "__oid__": "6a7a2b749fea1765711d8403"
+      }
+    },
+    {
+      "email": "buyer1@test.com",
+      "password": "$2b$12$/tHQA/sWcq2WAax76LjPX.wjDbqaqqteGjwJyexgVie67e.kgCkX6",
+      "is_admin": false,
+      "role": "customer",
+      "shop_name": null,
+      "_id": {
+        "__oid__": "6a7a2b759fea1765711d8404"
+      }
+    },
+    {
+      "email": "boutique@test.com",
+      "password": "$2b$12$qFwC8HEUrhypktlf8yo0V.aN4LW8nuGOeSOITHpQVpJdCWSqxWn9W",
+      "is_admin": false,
+      "role": "seller",
+      "shop_name": "Lahore Boutique",
+      "_id": {
+        "__oid__": "6a7a2d349fea1765711d8406"
+      }
+    },
+    {
+      "email": "karachi.threads@test.com",
+      "password": "$2b$12$SpVMbn2xlybk2JhHpNV79uTYMK8Mcn7DS9EBZ3MPYNboU.fD56iZW",
+      "is_admin": false,
+      "role": "seller",
+      "shop_name": "Karachi",
+      "_id": {
+        "__oid__": "6a7a31b19fea1765711d8408"
+      }
+    }
+  ],
+  "orders": [],
+  "notifications": [],
+  "user_activity": [],
+  "inventory": [],
+  "promotions": []
+}

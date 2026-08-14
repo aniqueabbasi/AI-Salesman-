@@ -1,0 +1,8 @@
+Model Training Parameters:
+- Min Support: 0.001
+- Min Confidence: 0.1
+- Min Lift: 0.5
+- Number of Rules: 78
+- Number of Features: 14
+- Number of Products: 14
+- Model File: models\recommendation_model.pkl
