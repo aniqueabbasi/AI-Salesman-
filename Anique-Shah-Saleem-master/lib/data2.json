@@ -1,0 +1,56 @@
+[
+  {
+    "id": 201,
+    "name": "Mid‑Blue Belted Jeans",
+    "category": "Jeans",
+    "gender": "Unisex",
+    "sizes": ["30", "32", "34", "36"],
+    "price": 29.99,
+    "imageUrl": "https://cdn.pixabay.com/photo/2017/03/20/20/36/blue-jeans-2160265_1280.jpg"
+  },
+  {
+    "id": 202,
+    "name": "Dark‑Wash Slim Fit",
+    "category": "Jeans",
+    "gender": "Men",
+    "sizes": ["30", "32", "34", "38"],
+    "price": 34.99,
+    "imageUrl": "https://cdn.pixabay.com/photo/2017/12/30/22/07/jeans-3051102_640.jpg"
+  },
+  {
+    "id": 203,
+    "name": "Stone‑Washed Kids Jeans",
+    "category": "Jeans",
+    "gender": "Kids",
+    "sizes": ["4Y", "6Y", "8Y", "10Y"],
+    "price": 17.5,
+    "imageUrl": "https://cdn.pixabay.com/photo/2014/12/11/10/22/jeans-564073_640.jpg"
+  },
+  {
+    "id": 204,
+    "name": "Indigo Belt‑Loop Denim",
+    "category": "Jeans",
+    "gender": "Men",
+    "sizes": ["32", "34", "36", "38"],
+    "price": 31.0,
+    "imageUrl": "https://cdn.pixabay.com/photo/2015/07/20/01/57/jeans-852253_640.jpg"
+  },
+  {
+    "id": 205,
+    "name": "Light‑Blue Classic Denim",
+    "category": "Jeans",
+    "gender": "Women",
+    "sizes": ["26", "28", "30", "32"],
+    "price": 27.99,
+    "imageUrl": "https://cdn.pixabay.com/photo/2014/03/20/18/35/hdr-291581_640.jpg"
+  },
+  {
+    "id": 206,
+    "name": "Heart‑Patch Fashion Jeans",
+    "category": "Jeans",
+    "gender": "Girls",
+    "sizes": ["4Y", "6Y", "8Y"],
+    "price": 19.5,
+    "imageUrl": "https://cdn.pixabay.com/photo/2014/04/05/11/46/fabric-316777_640.jpg"
+  }
+]

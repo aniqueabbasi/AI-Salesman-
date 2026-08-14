@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "781700492016",
+    "project_id": "ai-salesman-9de3b",
+    "storage_bucket": "ai-salesman-9de3b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:781700492016:android:97bd7b5cd01ab5691cb035",
+        "android_client_info": {
+          "package_name": "Aisalemanapp.com"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDUI724wNL4XuegYuJ00Mp5aInSAzfQOTM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:781700492016:android:4fe59d1b365863bc1cb035",
+        "android_client_info": {
+          "package_name": "com.example.prac"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDUI724wNL4XuegYuJ00Mp5aInSAzfQOTM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
