@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:prac/AppScreens/Seller/SellerDashboard.dart';
 import 'package:prac/AppScreens/ShopMenu/ShopMenue .dart';
+import 'package:prac/res/app_theme.dart';
 import 'package:prac/services/auth_service.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -60,50 +61,85 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color.fromARGB(255, 22, 22, 23),
-              Color(0xFF2575FC),
-            ],
-          ),
-        ),
-        child: Center(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
+      backgroundColor: AppTheme.darkBg,
+      body: SafeArea(
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(34, 40, 34, 40),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // AI Assistant Animation
-                Lottie.asset(
-                  'assets/animations/ai_assistant.json',
-                  width: 200,
-                  height: 200,
-                  fit: BoxFit.contain,
+                // Build/boot status, mono as per the system label rule.
+                Text('v1.0 · loading .env',
+                    style: AppTheme.mono(13,
+                        color: AppTheme.darkTextMuted,
+                        weight: FontWeight.w500,
+                        tracking: 0)),
+
+                // Wordmark block
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: AppTheme.accent,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text('AI',
+                          style: AppTheme.mono(20,
+                              color: Colors.white, tracking: 0)),
+                    ),
+                    const SizedBox(height: 28),
+                    Text('AI Salesman',
+                        style: AppTheme.display(52,
+                            color: AppTheme.darkTextBright, height: 0.98)),
+                    const SizedBox(height: 16),
+                    Text('Shop by conversation.',
+                        style: AppTheme.ui(18,
+                            color: AppTheme.darkTextSecondary, height: 1.5)),
+                    // Keep the existing brand animation, scaled to sit under
+                    // the wordmark rather than dominating the screen.
+                    const SizedBox(height: 8),
+                    Lottie.asset(
+                      'assets/animations/ai_assistant.json',
+                      width: 150,
+                      height: 150,
+                      fit: BoxFit.contain,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 20),
-                // AI Salesman Text
-                const Text(
-                  'AI Salesman',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                // Loading Indicator
-                const SizedBox(
-                  width: 50,
-                  height: 50,
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    strokeWidth: 2.0,
-                  ),
+
+                // Determinate-looking boot bar + the services being warmed up
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(2),
+                      child: AnimatedBuilder(
+                        animation: _controller,
+                        builder: (context, _) => LinearProgressIndicator(
+                          value: 0.15 + (_controller.value * 0.85),
+                          minHeight: 4,
+                          backgroundColor: AppTheme.darkBorder,
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                              AppTheme.accent),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Text('firebase · chatbot · notifications',
+                        style: AppTheme.mono(12,
+                            color: AppTheme.darkTextMuted,
+                            weight: FontWeight.w500,
+                            tracking: 0)),
+                  ],
                 ),
               ],
             ),

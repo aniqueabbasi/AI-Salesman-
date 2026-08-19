@@ -210,7 +210,11 @@ class PatchedCarouselSliderState extends State<PatchedCarouselSlider> with Ticke
 
   void _autoPlayTimerCallback(Timer timer) {
     if (!mounted || _isScrolling) return;
-    
+    // While the slider sits in an offstage branch (e.g. a bottom-nav
+    // IndexedStack) the PageView is never laid out, so the controller has no
+    // clients and animateToPage would assert. Skip the tick until it attaches.
+    if (!_pageController.hasClients) return;
+
     final nextPage = _currentPage + 1;
     _pageController.animateToPage(
       nextPage,

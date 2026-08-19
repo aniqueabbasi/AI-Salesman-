@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:prac/AppScreens/Orders/OrderPlacedScreen.dart';
+import 'package:prac/res/app_theme.dart';
+import 'package:prac/res/ui_kit.dart';
 
 class PaymentMethodScreen extends StatefulWidget {
   final double totalAmount;
@@ -107,69 +110,38 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
       _isProcessing = false;
     });
     
-    if (_selectedMethod == 'cash_on_delivery') {
-      _showCashOnDeliveryConfirmation();
-    } else {
-      _showOrderConfirmation();
-    }
-  }
-  
-  void _showCashOnDeliveryConfirmation() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Order Placed!'),
-          content: const Text('Your order has been placed successfully with Cash on Delivery. You will pay when you receive the items.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).popUntil((route) => route.isFirst);
-              },
-              child: const Text('Continue Shopping', style: TextStyle(color: Color(0xFF6C63FF))),
-            ),
-          ],
-        );
-      },
+    if (!mounted) return;
+    // Full confirmation screen rather than a dialog, so the order id, amount
+    // and delivery window have somewhere to live.
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => OrderPlacedScreen(
+          orderId: _generateOrderId(),
+          total: widget.totalAmount,
+        ),
+      ),
     );
   }
-  
-  void _showOrderConfirmation() {
-    showDialog(
-      context: context,
-      barrierDismissible: false, // Prevent dismissing by tapping outside
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Order Confirmed!'),
-          content: const Text('Your order has been confirmed. Continue shopping!'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).popUntil((route) => route.isFirst);
-              },
-              child: const Text('Continue Shopping', style: TextStyle(color: Color(0xFF6C63FF))),
-            ),
-          ],
-        );
-      },
-    );
+
+  /// Short, readable reference in the same shape the design shows (#A41F09).
+  String _generateOrderId() {
+    final stamp = DateTime.now().millisecondsSinceEpoch.toRadixString(16);
+    return '#${stamp.substring(stamp.length - 6).toUpperCase()}';
   }
+  
+  
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: AppTheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.surface,
         elevation: 0,
-        title: const Text(
-          'Payment Method',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
+        centerTitle: false,
+        title: Text('Checkout', style: AppTheme.display(26)),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: AppTheme.ink),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -227,7 +199,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                   // Blocks double submissions while the payment is in flight.
                   onPressed: _isProcessing ? null : _processPayment,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6C63FF),
+                    backgroundColor: AppTheme.accent,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -345,7 +317,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
         decoration: BoxDecoration(
           border: Border.all(
             color: isSelected
-                ? const Color(0xFF6C63FF)
+                ? AppTheme.accent
                 : Colors.grey.shade300,
             width: 1.5,
           ),
@@ -354,19 +326,19 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
         child: RadioListTile<String>(
           title: Row(
             children: [
-              Icon(icon, color: isSelected ? const Color(0xFF6C63FF) : Colors.grey),
+              Icon(icon, color: isSelected ? AppTheme.accent : Colors.grey),
               const SizedBox(width: 12),
               Text(
                 title,
                 style: TextStyle(
-                  color: isSelected ? const Color(0xFF6C63FF) : Colors.black87,
+                  color: isSelected ? AppTheme.accent : Colors.black87,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
             ],
           ),
           value: value,
-          activeColor: const Color(0xFF6C63FF),
+          activeColor: AppTheme.accent,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16),
         ),
       ),
@@ -392,13 +364,13 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          _buildOrderRow('Subtotal', 'RS ${widget.totalAmount.toStringAsFixed(2)}'),
+          _buildOrderRow('Subtotal', formatPkr(widget.totalAmount)),
           const SizedBox(height: 8),
           _buildOrderRow('Shipping', 'Free'),
           const Divider(height: 32),
           _buildOrderRow(
             'Total',
-            'RS ${widget.totalAmount.toStringAsFixed(2)}',
+            formatPkr(widget.totalAmount),
             isBold: true,
             isAccent: true,
           ),
@@ -423,7 +395,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: isAccent ? const Color(0xFF6C63FF) : Colors.black87,
+              color: isAccent ? AppTheme.accent : Colors.black87,
             ),
           ),
           Text(
@@ -431,7 +403,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: isAccent ? const Color(0xFF6C63FF) : Colors.black87,
+              color: isAccent ? AppTheme.accent : Colors.black87,
             ),
           ),
         ],

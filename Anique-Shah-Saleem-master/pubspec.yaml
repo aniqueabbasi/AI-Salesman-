@@ -34,6 +34,9 @@ dependencies:
   firebase_core: ^2.27.0
   firebase_messaging: ^14.7.10
   http: ^1.1.0
+  # Supplies MediaType so multipart uploads can declare a real content type
+  # instead of defaulting to application/octet-stream.
+  http_parser: ^4.0.0
   shared_preferences: ^2.5.3
   flutter_dotenv: ^5.1.0
   google_generative_ai: ^0.4.7
@@ -47,6 +50,7 @@ dependencies:
   dart_format: ^1.3.0
   lottie: ^2.6.0
   flutter_rating_bar: ^4.0.1
+  google_fonts: ^8.2.1
 
 dev_dependencies:
   flutter_test:
