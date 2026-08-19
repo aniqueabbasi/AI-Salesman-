@@ -1,25 +1,71 @@
-# .env and service-account JSON are committed at the repo owner's
-# request (private repository).
-*.pem
-
+# ---------------------------------------------------------------
 # Python
+# ---------------------------------------------------------------
 __pycache__/
 *.py[cod]
+*$py.class
+*.egg-info/
 .venv/
 venv/
 env/
-*.egg-info/
+.pytest_cache/
+.mypy_cache/
 
-# Trained models / large artifacts (regenerate locally)
-# models/*.pkl
+# ---------------------------------------------------------------
+# Node
+# ---------------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-error.log*
 
-# IDE
+# ---------------------------------------------------------------
+# Flutter / Dart build output
+# ---------------------------------------------------------------
+# `build/` alone is ~1.7 GB and contains files far over GitHub's 100 MB limit.
+build/
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+
+# Android build artifacts. `.cxx` paths also exceed the Windows path limit,
+# which blocks `git add` outright.
+**/.cxx/
+android/.gradle/
+android/app/build/
+android/build/
+*.jks
+*.keystore
+
+# iOS / macOS build output
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/App.framework/
+ios/Flutter/Flutter.framework/
+**/Flutter/ephemeral/
+DerivedData/
+
+# ---------------------------------------------------------------
+# Archives - `front end.zip` is 566 MB, well over GitHub's 100 MB limit.
+# The file stays on disk; it is simply not tracked.
+# ---------------------------------------------------------------
+*.zip
+*.7z
+*.rar
+
+# ---------------------------------------------------------------
+# Editors / OS
+# ---------------------------------------------------------------
 .idea/
 .vscode/
-
-# OS
+*.iml
 .DS_Store
 Thumbs.db
 
-# Logs
+# ---------------------------------------------------------------
+# Logs & local runtime state
+# ---------------------------------------------------------------
 *.log
+
+# NOTE: .env files are intentionally NOT ignored - they are committed at the
+# repository owner's request, and this repository is private.

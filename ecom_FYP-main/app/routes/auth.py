@@ -4,8 +4,13 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from app.core.deps import get_current_user
 from app.core.security import create_access_token
-from app.models.user import UserCreate, UserLogin
-from app.services.user_service import authenticate_user, create_user, get_user_by_email
+from app.models.user import UserCreate, UserLogin, UserProfileUpdate
+from app.services.user_service import (
+    authenticate_user,
+    create_user,
+    get_user_by_email,
+    update_user_profile,
+)
 
 router = APIRouter()
 
@@ -18,7 +23,26 @@ def _public_user(user: dict) -> dict:
         "role": user.get("role", "customer"),
         "is_admin": user.get("is_admin", False),
         "shop_name": user.get("shop_name"),
+        "full_name": user.get("full_name"),
+        "phone": user.get("phone"),
     }
+
+
+@router.get("/me")
+def read_me(user: dict = Depends(get_current_user)):
+    """The signed-in account's own profile."""
+    return _public_user(user)
+
+
+@router.put("/me")
+def update_me(
+    updates: UserProfileUpdate,
+    user: dict = Depends(get_current_user),
+):
+    """Change the signed-in account's own contact details."""
+    update_user_profile(str(user.get("_id")), updates.dict())
+    refreshed = get_user_by_email(user.get("email"))
+    return _public_user(refreshed or user)
 
 
 @router.post("/signup")

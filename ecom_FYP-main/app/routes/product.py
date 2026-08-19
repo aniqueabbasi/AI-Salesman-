@@ -68,6 +68,29 @@ async def upload_image(
     return {"url": url, "filename": filename}
 
 
+@router.patch("/{product_id}/stock")
+def set_product_stock(
+    product_id: str,
+    stock: int = Query(..., ge=0),
+    seller: dict = Depends(require_seller),
+):
+    """Adjust stock on a listing this seller owns.
+
+    Writes `products.stock` directly, which is the field the storefront reads,
+    rather than the separate inventory collection.
+    """
+    product = get_product_by_id(product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    if str(product.get("seller_id")) != str(seller.get("_id")):
+        raise HTTPException(
+            status_code=403, detail="This listing belongs to another seller"
+        )
+
+    update_product(product_id, {"stock": stock})
+    return {"message": "Stock updated", "product_id": product_id, "stock": stock}
+
+
 @router.delete("/{product_id}")
 def remove_product(product_id: str, seller: dict = Depends(require_seller)):
     """Delete a listing, but only if this seller owns it."""
