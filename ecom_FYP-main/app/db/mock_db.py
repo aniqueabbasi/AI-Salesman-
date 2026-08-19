@@ -314,6 +314,19 @@ def seed(db):
     """Restore any saved state, then populate the starter catalogue if empty."""
     db.load()
 
+    _seed_products(db)
+
+    # Ownership and order history are seeded separately: the catalogue may
+    # already exist from disk while the seller demo data does not.
+    try:
+        from app.db.seed_demo import seed_demo
+
+        seed_demo(db)
+    except Exception as exc:  # demo data must never block startup
+        logger.warning("MockDB: could not seed demo data: %s", exc)
+
+
+def _seed_products(db):
     products = db["products"]
     if products.data:
         return  # already seeded or restored from disk

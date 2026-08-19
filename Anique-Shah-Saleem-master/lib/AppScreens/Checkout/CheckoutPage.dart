@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:prac/Controller/CartProvider.dart';
+import 'package:prac/res/app_theme.dart';
+import 'package:prac/res/ui_kit.dart';
 import 'PaymentMethodScreen.dart';
 
 class UserInformation {
@@ -171,6 +173,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Scaffold(
+        backgroundColor: AppTheme.surface,
         body: Center(
           child: CircularProgressIndicator(),
         ),
@@ -187,108 +190,111 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final total = subtotal + shipping;
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'Checkout',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Shipping Address Section
-              _buildSectionHeader('Shipping Address'),
-              const SizedBox(height: 12),
-              _buildAddressCard(),
-              const SizedBox(height: 24),
+      backgroundColor: AppTheme.surface,
+      bottomNavigationBar: _buildBottomBar(total, totalItems),
+      body: SafeArea(
+        child: Column(
+          children: [
+            const ScreenHeader('Checkout'),
+            Expanded(
+              child: Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(22, 18, 22, 24),
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const _CheckoutSteps(current: 0),
+                      const SizedBox(height: 24),
 
-              // Contact Information Section
-              _buildSectionHeader('Contact Information'),
-              const SizedBox(height: 12),
-              _buildContactInfo(),
-              const SizedBox(height: 24),
+                      // Shipping Address Section
+                      _buildSectionHeader('Deliver to'),
+                      const SizedBox(height: 10),
+                      _buildAddressCard(),
+                      const SizedBox(height: 22),
 
-              // Voucher Section
-              _buildVoucherSection(),
-              const SizedBox(height: 24),
+                      // Contact Information Section
+                      _buildSectionHeader('Contact'),
+                      const SizedBox(height: 10),
+                      _buildContactInfo(),
+                      const SizedBox(height: 22),
 
-              // Order Summary Section
-              _buildSectionHeader('Order Summary'),
-              const SizedBox(height: 12),
-              _buildOrderSummary(subtotal, shipping, total, totalItems),
-              const SizedBox(height: 24),
+                      // Voucher Section
+                      _buildVoucherSection(),
+                      const SizedBox(height: 22),
 
-              // Continue to Payment Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (_validateForm()) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PaymentMethodScreen(
-                            totalAmount: total,
-                            totalItems: totalItems,
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6C63FF),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Continue to Payment',
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
+                      // Order Summary Section
+                      _buildSectionHeader('Order summary'),
+                      const SizedBox(height: 10),
+                      _buildOrderSummary(subtotal, shipping, total, totalItems),
+                    ],
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildSectionHeader(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-        color: Colors.black87,
+  /// Total plus the forward action, pinned above the system inset.
+  Widget _buildBottomBar(double total, int totalItems) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(22, 12, 22, 16),
+      decoration: const BoxDecoration(
+        color: AppTheme.surface,
+        border: Border(top: BorderSide(color: AppTheme.borderSoft)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Eyebrow('Total'),
+                const SizedBox(height: 2),
+                Text(formatPkr(total), style: AppTheme.display(22)),
+              ],
+            ),
+            const SizedBox(width: 18),
+            Expanded(
+              child: PrimaryButton(
+                'Continue to pay',
+                onPressed: () {
+                  if (!_validateForm()) return;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PaymentMethodScreen(
+                        totalAmount: total,
+                        totalItems: totalItems,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
+
+  Widget _buildSectionHeader(String title) => Eyebrow(title);
 
   Widget _buildAddressCard() {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceRaised,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
+            color: AppTheme.ink.withValues(alpha: 0.04),
             spreadRadius: 1,
             blurRadius: 4,
             offset: const Offset(0, 2),
@@ -307,7 +313,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
               ),
               if (!_isEditingAddress)
                 IconButton(
-                  icon: const Icon(Icons.edit, size: 20, color: Color(0xFF6C63FF)),
+                  icon: const Icon(Icons.edit, size: 20, color: AppTheme.accent),
                   onPressed: () {
                     setState(() {
                       _isEditingAddress = true;
@@ -330,7 +336,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 )
               : Text(
                   _addressController.text,
-                  style: const TextStyle(color: Colors.grey, height: 1.5),
+                  style: const TextStyle(color: AppTheme.textMuted, height: 1.5),
                 ),
           if (_isEditingAddress) const SizedBox(height: 12),
           if (_isEditingAddress)
@@ -354,7 +360,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     });
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6C63FF),
+                    backgroundColor: AppTheme.accent,
+                    // Undo the theme's full-width default: inside a Row the
+                    // infinite minimum width has nothing to bound it.
+                    minimumSize: Size.zero,
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   ),
                   child: const Text('Save', style: TextStyle(color: Colors.white)),
@@ -370,11 +379,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceRaised,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
+            color: AppTheme.ink.withValues(alpha: 0.04),
             spreadRadius: 1,
             blurRadius: 4,
             offset: const Offset(0, 2),
@@ -393,7 +402,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
               ),
               if (!_isEditingContact)
                 IconButton(
-                  icon: const Icon(Icons.edit, size: 20, color: Color(0xFF6C63FF)),
+                  icon: const Icon(Icons.edit, size: 20, color: AppTheme.accent),
                   onPressed: () {
                     setState(() {
                       _isEditingContact = true;
@@ -407,7 +416,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           // Email Field
           const Text(
             'Email',
-            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14, color: Colors.black87),
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14, color: AppTheme.textPrimary),
           ),
           const SizedBox(height: 4),
           _isEditingContact
@@ -423,7 +432,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 )
               : Text(
                   _emailController.text,
-                  style: const TextStyle(color: Colors.grey),
+                  style: const TextStyle(color: AppTheme.textMuted),
                 ),
           
           const SizedBox(height: 16),
@@ -433,7 +442,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           // Phone Field
           const Text(
             'Phone',
-            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14, color: Colors.black87),
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14, color: AppTheme.textPrimary),
           ),
           const SizedBox(height: 4),
           _isEditingContact
@@ -449,7 +458,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 )
               : Text(
                   _phoneController.text,
-                  style: const TextStyle(color: Colors.grey),
+                  style: const TextStyle(color: AppTheme.textMuted),
                 ),
           
           if (_isEditingContact) const SizedBox(height: 16),
@@ -474,7 +483,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     });
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6C63FF),
+                    backgroundColor: AppTheme.accent,
+                    // Undo the theme's full-width default: inside a Row the
+                    // infinite minimum width has nothing to bound it.
+                    minimumSize: Size.zero,
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   ),
                   child: const Text('Save', style: TextStyle(color: Colors.white)),
@@ -490,11 +502,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceRaised,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
+            color: AppTheme.ink.withValues(alpha: 0.04),
             spreadRadius: 1,
             blurRadius: 4,
             offset: const Offset(0, 2),
@@ -506,12 +518,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
         children: [
           Row(
             children: [
-              const Icon(Icons.local_offer_outlined, color: Colors.grey),
+              const Icon(Icons.local_offer_outlined, color: AppTheme.textMuted),
               const SizedBox(width: 12),
               if (!_showVoucherField)
                 const Text(
                   'Add Voucher',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                  style: TextStyle(fontSize: 16, color: AppTheme.textMuted),
                 ),
               const Spacer(),
               if (!_showVoucherField)
@@ -527,7 +539,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   ),
                   child: const Text(
                     'Apply',
-                    style: TextStyle(color: Color(0xFF6C63FF)),
+                    style: TextStyle(color: AppTheme.accent),
                   ),
                 ),
             ],
@@ -560,7 +572,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       const SnackBar(content: Text('Voucher applied successfully')),
                     );
                   },
-                  child: const Text('Apply', style: TextStyle(color: Color(0xFF6C63FF))),
+                  child: const Text('Apply', style: TextStyle(color: AppTheme.accent)),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close, size: 20),
@@ -582,11 +594,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceRaised,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
+            color: AppTheme.ink.withValues(alpha: 0.04),
             spreadRadius: 1,
             blurRadius: 4,
             offset: const Offset(0, 2),
@@ -608,7 +620,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           const SizedBox(height: 8),
           Text(
             '$totalItems items',
-            style: const TextStyle(color: Colors.grey, fontSize: 14),
+            style: const TextStyle(color: AppTheme.textMuted, fontSize: 14),
           ),
         ],
       ),
@@ -626,7 +638,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: isAccent ? const Color(0xFF6C63FF) : Colors.black87,
+              color: isAccent ? AppTheme.accent : AppTheme.textPrimary,
             ),
           ),
           Text(
@@ -634,7 +646,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: isAccent ? const Color(0xFF6C63FF) : Colors.black87,
+              color: isAccent ? AppTheme.accent : AppTheme.textPrimary,
             ),
           ),
         ],
@@ -642,8 +654,45 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
-  String _formatCurrency(double amount) {
-    return 'RS ${amount.toStringAsFixed(2)}';
+  String _formatCurrency(double amount) => formatPkr(amount);
+}
+
+/// The three-stage progress rail across the top of checkout.
+class _CheckoutSteps extends StatelessWidget {
+  /// Zero-based index of the stage the shopper is on.
+  final int current;
+
+  const _CheckoutSteps({required this.current});
+
+  static const List<String> _labels = ['Address', 'Pay', 'Done'];
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        for (var i = 0; i < _labels.length; i++) ...[
+          if (i > 0)
+            Expanded(
+              child: Container(
+                height: 1,
+                margin: const EdgeInsets.symmetric(horizontal: 8),
+                color: i <= current
+                    ? AppTheme.ink
+                    : AppTheme.borderStrong,
+              ),
+            ),
+          Text(
+            '${i + 1} ${_labels[i].toUpperCase()}',
+            style: AppTheme.mono(
+              11,
+              color: i == current
+                  ? AppTheme.ink
+                  : (i < current ? AppTheme.textSecondary : AppTheme.textMuted),
+            ),
+          ),
+        ],
+      ],
+    );
   }
 }
 

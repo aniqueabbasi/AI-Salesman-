@@ -12,6 +12,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 from pymongo import MongoClient
 from bson import ObjectId
+import httpx  # used to read the storefront catalogue over the store API
 import openai
 import json5  # for lenient JSON parsing
 import groq
@@ -64,25 +65,36 @@ class MongoJSONEncoder(json.JSONEncoder):
             return o.isoformat()
         return super().default(o)
 
-# MongoDB connection with SSL certificate verification
+# The assistant reads the live storefront catalogue over the store API, so
+# MongoDB is now optional. The connection is still attempted for backwards
+# compatibility, but failing it no longer stops the service from starting.
+client = None
+db = None
+products_collection = None
 try:
     client = MongoClient(
         os.getenv("MONGODB_URI"),
-        tlsCAFile=certifi.where()
+        tlsCAFile=certifi.where(),
+        serverSelectionTimeoutMS=3000,
     )
-    # Test the connection
     client.admin.command('ping')
+    db = client[os.getenv("DATABASE_NAME", "ecommerce")]
+    products_collection = db[os.getenv("COLLECTION_NAME", "products")]
     logger.info("Successfully connected to MongoDB")
 except Exception as e:
-    logger.error(f"Failed to connect to MongoDB: {str(e)}")
-    raise
+    logger.warning(
+        "MongoDB unavailable (%s). Serving recommendations from the store API.",
+        e,
+    )
 
-db = client[os.getenv("DATABASE_NAME", "ecommerce")]
-products_collection = db[os.getenv("COLLECTION_NAME", "products")]
+# The same catalogue the customer app reads, so anything the assistant
+# recommends is a product that actually exists in the shop - including
+# listings a seller published minutes ago.
+STORE_API = os.getenv("STORE_API_URL", "http://127.0.0.1:8000")
 
 # Configure AI clients
 openai.api_key = os.getenv("OPENAI_API_KEY")
-groq_client = groq.Groq(api_key="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")
+groq_client = groq.Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 class ChatRequest(BaseModel):
     message: str
@@ -336,11 +348,227 @@ RESPONSE FORMAT:
             return default_response
         except Exception as e:
             logger.error(f"Error processing AI response: {str(e)}")
-            return default_response
-            
+            return _local_intent(message, page, default_response)
+
     except Exception as e:
         logger.error(f"Error in AI processing: {str(e)}")
+        return _local_intent(message, page, default_response)
+
+
+# Words that describe a garment rather than a filter, used by the keyword
+# fallback below.
+_PRODUCT_WORDS = {
+    "coat": "coat", "raincoat": "coat", "rain": "coat",
+    "jacket": "jacket", "jackets": "jacket",
+    "jean": "jean", "jeans": "jean", "denim": "denim",
+    "shirt": "shirt", "shirts": "shirt", "tshirt": "shirt", "t-shirt": "shirt",
+    "shoe": "shoe", "shoes": "shoe", "sneaker": "sneaker", "sneakers": "sneaker",
+    "boot": "boot", "boots": "boot", "loafer": "loafer",
+    "kurta": "kurta", "dress": "dress", "wallet": "wallet",
+    "hoodie": "hoodie", "blazer": "blazer", "coats": "coat",
+}
+
+_COLOUR_WORDS = {
+    "black", "white", "blue", "red", "green", "brown", "grey", "gray",
+    "beige", "navy", "silk", "leather", "denim", "suede", "cotton", "formal",
+    "casual", "winter", "summer",
+}
+
+
+def _local_intent(message: str, page: int, default_response: Dict[str, Any]) -> Dict[str, Any]:
+    """Understand the message without the LLM.
+
+    The hosted model is the preferred path, but it needs a valid API key and a
+    network. When that call fails this keeps the assistant useful: it pulls the
+    garment, colour and price ceiling straight out of the sentence and searches
+    the storefront with them, rather than replying with a canned sentence.
+    """
+    lowered = message.lower()
+    words = set(re.split(r"\W+", lowered))
+
+    garments = {v for k, v in _PRODUCT_WORDS.items() if k in words}
+    colours = {w for w in words if w in _COLOUR_WORDS}
+
+    # "under 3000", "below 2,500", "less than 4000"
+    price_cap = None
+    cap_match = re.search(
+        r"(?:under|below|less than|cheaper than|upto|up to)\s*(?:rs\.?|pkr)?\s*([\d,]+)",
+        lowered,
+    )
+    if cap_match:
+        try:
+            price_cap = float(cap_match.group(1).replace(",", ""))
+        except ValueError:
+            price_cap = None
+
+    if not garments and not colours and price_cap is None:
         return default_response
+
+    # Search terms go against the product title; colour and material usually
+    # live in the name too ("Black Leather Jacket").
+    terms = " ".join(sorted(garments | colours))
+    query_params: Dict[str, Any] = {}
+    if terms:
+        query_params["title"] = terms
+    if price_cap is not None:
+        query_params["selling_price"] = {"$lte": price_cap}
+
+    described = " ".join(sorted(colours | garments)) or "products"
+    text = f"Here's what I found for {described} in the shop."
+    if price_cap is not None:
+        text = f"Here's what I found for {described} under Rs {int(price_cap):,}."
+
+    logger.info("Keyword fallback matched %s (cap=%s)", query_params, price_cap)
+
+    return {
+        "is_product_query": True,
+        "query_params": query_params,
+        "response_text": text,
+        "should_compare": False,
+        "pagination_context": {
+            "has_more": False,
+            "current_page": page,
+            "show_more_prompt": "Would you like to see more?",
+        },
+        "comparison_context": {
+            "is_comparing_brands": False,
+            "brands": [],
+            "comparison_type": None,
+        },
+        "debug_info": "Answered by keyword fallback (AI provider unavailable)",
+    }
+
+def _fetch_store_catalogue() -> List[Dict]:
+    """Pull the storefront catalogue from the main API.
+
+    Returns the app's own product shape: name/price/category/images/stock.
+    """
+    try:
+        with httpx.Client(timeout=10) as http_client:
+            response = http_client.get(
+                f"{STORE_API}/products/", params={"skip": 0, "limit": 200}
+            )
+            response.raise_for_status()
+            payload = response.json()
+    except Exception as exc:
+        logger.error("Could not reach the store API at %s: %s", STORE_API, exc)
+        return []
+
+    # The endpoint is paginated: {items: [...], total, skip, limit}
+    if isinstance(payload, dict):
+        return payload.get("items") or []
+    return payload or []
+
+
+def _as_chat_product(product: Dict) -> Dict:
+    """Map a storefront product onto the shape the chat UI renders."""
+    images = product.get("images") or []
+    image_url = images[0] if images else None
+    # Bundled asset paths cannot be fetched over http by the chat bubble, so
+    # only pass through real URLs and let the UI show its placeholder.
+    if image_url and not str(image_url).startswith("http"):
+        image_url = None
+
+    price = float(product.get("price") or 0)
+    return {
+        "_id": product.get("id"),
+        "title": product.get("name"),
+        "brand": product.get("shop_name") or product.get("category") or "",
+        "selling_price": price,
+        "actual_price": price,
+        "images": [image_url] if image_url else [],
+        "sub_category": product.get("category") or "",
+        "description": product.get("description") or "",
+        "stock": product.get("stock"),
+        "discount_percentage": 0,
+    }
+
+
+def _matches(product: Dict, query_params: Dict[str, Any]) -> bool:
+    """Apply the AI's extracted filters against one storefront product.
+
+    The model emits the dataset's vocabulary (title/brand/selling_price), so
+    those names are honoured here and mapped onto the store's fields.
+    """
+    haystacks = {
+        "title": str(product.get("title") or "").lower(),
+        "brand": str(product.get("brand") or "").lower(),
+        "description": str(product.get("description") or "").lower(),
+        "sub_category": str(product.get("sub_category") or "").lower(),
+    }
+
+    for field, expected in query_params.items():
+        if field in ("$and", "$or"):
+            clauses = expected if isinstance(expected, list) else []
+            results = [_matches(product, c) for c in clauses if isinstance(c, dict)]
+            if field == "$and" and not all(results or [True]):
+                return False
+            if field == "$or" and results and not any(results):
+                return False
+            continue
+
+        if field in haystacks:
+            needle = expected
+            if isinstance(expected, dict):
+                needle = expected.get("$regex", "")
+            needle = str(needle).strip().lower()
+            if not needle:
+                continue
+            # Any word of the phrase hitting the field counts as a match, so
+            # "black jacket" still finds "Black Leather Jacket".
+            words = [w for w in re.split(r"\W+", needle) if len(w) > 2]
+            target = haystacks[field]
+            if words and not any(w in target for w in words):
+                # Fall back to the whole phrase before rejecting.
+                if needle not in target:
+                    return False
+            continue
+
+        if field in ("selling_price", "actual_price"):
+            price = float(product.get("selling_price") or 0)
+            if isinstance(expected, dict):
+                for op, bound in expected.items():
+                    try:
+                        bound = float(bound)
+                    except (TypeError, ValueError):
+                        continue
+                    if op in ("$lte", "$lt") and not price <= bound:
+                        return False
+                    if op in ("$gte", "$gt") and not price >= bound:
+                        return False
+            else:
+                try:
+                    if price != float(expected):
+                        return False
+                except (TypeError, ValueError):
+                    pass
+            continue
+
+    return True
+
+
+def query_store_products(
+    query_params: Dict[str, Any], page: int = 1, sort_params: Dict[str, Any] = None
+) -> tuple:
+    """Search the storefront catalogue. Returns (page_of_products, total)."""
+    catalogue = [_as_chat_product(p) for p in _fetch_store_catalogue()]
+    matched = [p for p in catalogue if _matches(p, query_params or {})]
+
+    # Nothing matched the model's filters: fall back to the whole catalogue so
+    # the shopper still gets suggestions rather than a dead end.
+    if not matched:
+        matched = catalogue
+
+    if sort_params:
+        for field, direction in sort_params.items():
+            key = "selling_price" if "price" in field else field
+            matched.sort(
+                key=lambda p: p.get(key) or 0, reverse=(direction == -1)
+            )
+
+    start = (page - 1) * ITEMS_PER_PAGE
+    return matched[start:start + ITEMS_PER_PAGE], len(matched)
+
 
 def query_products(query_params: Dict[str, Any], page: int = 1, sort_params: Dict[str, Any] = None) -> List[Dict]:
     """Query MongoDB products collection with pagination and sorting."""
@@ -516,12 +744,13 @@ async def chat_endpoint(request: ChatRequest):
                 if "top-rated" in request.message.lower():
                     sort_params = {"avg_rating": -1}
                 
-                products = query_products(
-                    ai_response["query_params"], 
+                # Search the live storefront so every suggestion is a product
+                # the shopper can actually add to their cart.
+                products, total_count = query_store_products(
+                    ai_response["query_params"],
                     request.page,
                     sort_params
                 )
-                total_count = products_collection.count_documents(ai_response["query_params"])
                 
                 # Handle product comparisons
                 if ai_response["should_compare"]:
@@ -573,12 +802,33 @@ async def chat_endpoint(request: ChatRequest):
             content={"message": "An error occurred while processing your request. Please try again."}
         )
 
-# Verify database connection and data
+# Verify the catalogue the assistant will actually search
 def verify_database():
+    if products_collection is None:
+        # No Mongo: confirm the store API is answering instead, since that is
+        # where recommendations now come from.
+        try:
+            catalogue = _fetch_store_catalogue()
+            if catalogue:
+                logger.info(
+                    "Catalogue source: store API at %s (%d products)",
+                    STORE_API,
+                    len(catalogue),
+                )
+            else:
+                logger.warning(
+                    "Store API at %s returned no products. The assistant will "
+                    "answer, but cannot recommend anything yet.",
+                    STORE_API,
+                )
+        except Exception as exc:
+            logger.warning("Could not reach the store API: %s", exc)
+        return
+
     try:
         # Test the connection
         client.admin.command('ping')
-        
+
         # Check if we have data
         total_products = products_collection.count_documents({})
         logger.info(f"Successfully connected to MongoDB. Total products in database: {total_products}")
@@ -602,4 +852,6 @@ verify_database()
 if __name__ == "__main__":
     logger.info("Starting server...")
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    # 8001 by default: 8000 belongs to the store API, and the app reads the
+    # assistant from CHATBOT_URL / :8001.
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("CHATBOT_PORT", "8001"))) 

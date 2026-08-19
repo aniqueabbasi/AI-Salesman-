@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:prac/Controller/CartProvider.dart';
 import 'package:prac/widgets/cart_badge_icon.dart';
-import 'package:prac/res/app_theme.dart';
 import 'package:prac/AppScreens/Checkout/CheckoutPage.dart';
+import 'package:prac/res/app_theme.dart';
+import 'package:prac/res/ui_kit.dart';
 import 'package:prac/services/auth_service.dart';
 import 'package:prac/Authentication/Login.dart';
 
@@ -111,18 +112,7 @@ class _CartPageState extends State<CartPage> {
       body: Stack(
         children: [
           // Background gradient
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.white,
-                  Color(0xFFE8F5FF),
-                ],
-              ),
-            ),
-          ),
+          Container(color: AppTheme.surface),
 
           // Cart Content
           Column(
@@ -132,13 +122,7 @@ class _CartPageState extends State<CartPage> {
                   icon: const Icon(Icons.arrow_back),
                   onPressed: () => Navigator.pop(context),
                 ),
-                title: const Text(
-                  "Your Shopping Cart",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
-                ),
+                title: Text("Your cart", style: AppTheme.display(26)),
                 backgroundColor: Colors.transparent,
                 elevation: 0,
                 actions: [
@@ -197,7 +181,7 @@ class _CartPageState extends State<CartPage> {
                                       width: 80,
                                       height: 80,
                                       decoration: BoxDecoration(
-                                        color: Colors.grey[100],
+                                        color: AppTheme.surfaceSunken,
                                         borderRadius: BorderRadius.circular(15),
                                       ),
                                       child: ClipRRect(
@@ -288,19 +272,14 @@ class _CartPageState extends State<CartPage> {
                                           CrossAxisAlignment.end,
                                       children: [
                                         Text(
-                                          'PKR ${productTotalPrice.toStringAsFixed(2)}',
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color.fromARGB(255, 79, 70, 248),
-                                          ),
+                                          formatPkr(productTotalPrice),
+                                          style: AppTheme.display(18),
                                         ),
                                         const SizedBox(height: 10),
                                         IconButton(
-                                          icon: Icon(
+                                          icon: const Icon(
                                             Icons.delete_outline,
-                                            color: const Color.fromARGB(255, 119, 65, 255)
-                                                .withValues(alpha: 0.7),
+                                            color: AppTheme.accentPressed,
                                             size: 22,
                                           ),
                                           onPressed: () {
@@ -355,12 +334,8 @@ class _CartPageState extends State<CartPage> {
                             builder: (context, cartProvider, child) {
                               double totalPrice = cartProvider.getTotalPrice();
                               return Text(
-                                'PKR ${totalPrice.toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color.fromARGB(255, 90, 65, 255),
-                                ),
+                                formatPkr(totalPrice),
+                                style: AppTheme.display(28),
                               );
                             },
                           ),
@@ -375,7 +350,7 @@ class _CartPageState extends State<CartPage> {
                           borderRadius: BorderRadius.circular(15),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color.fromARGB(255, 81, 65, 255).withValues(alpha: 0.3),
+                              color: AppTheme.accent.withValues(alpha: 0.28),
                               blurRadius: 8,
                               spreadRadius: 2,
                               offset: const Offset(0, 4),
@@ -406,7 +381,7 @@ class _CartPageState extends State<CartPage> {
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromARGB(255, 79, 70, 248),
+                            backgroundColor: AppTheme.accent,
                             shadowColor: Colors.transparent,
                             padding: const EdgeInsets.symmetric(vertical: 15),
                           ),

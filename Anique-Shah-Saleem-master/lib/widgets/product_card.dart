@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../Controller/CartProvider.dart';
-import '../res/app_theme.dart';
-import '../models/Product.dart';
-import '../AppScreens/ProductDetailPage.dart';
 
+import '../AppScreens/ProductDetailPage.dart';
+import '../Controller/CartProvider.dart';
+import '../models/Product.dart';
+import '../res/app_theme.dart';
+import '../res/ui_kit.dart';
+
+/// Catalogue tile. Renders vertically inside grids and horizontally inside
+/// lists; both share one image source, one cart action and one visual style.
 class ProductCard extends StatelessWidget {
   final Product product;
   final bool isHorizontal;
+
+  /// Retained for call-site compatibility. The card already prefers the
+  /// product's own artwork whenever it has any, so this no longer changes
+  /// anything.
   final bool useProductData;
-  
+
   const ProductCard({
     Key? key,
     required this.product,
@@ -17,60 +25,67 @@ class ProductCard extends StatelessWidget {
     this.useProductData = false,
   }) : super(key: key);
 
-  /// Renders the product's own artwork when it has any, falling back to the
-  /// supplied bundled asset only as a placeholder. Seller uploads arrive as
-  /// http URLs, the seeded catalogue uses `assets/...` paths.
-  Widget _productImage(
-    String placeholderAsset, {
-    required double? width,
-    required double height,
-  }) {
-    Widget broken() => Container(
-          width: width,
-          height: height,
-          color: Colors.grey.shade200,
-          child: Icon(Icons.image_not_supported,
-              color: Colors.grey.shade400, size: height > 100 ? 40 : 24),
-        );
+  /// Bundled artwork used when a product carries no image of its own. Picked
+  /// by id so a given product always gets the same stand-in.
+  static const List<String> _assetFallbacks = [
+    'assets/images/jean1.jpg',
+    'assets/images/green.jpg',
+    'assets/images/casual.jpg',
+    'assets/images/m2.jpg',
+    'assets/images/m3.jpg',
+    'assets/images/jean2.jpg',
+  ];
 
-    final String source = product.images.isNotEmpty &&
-            product.images.first.trim().isNotEmpty
-        ? product.images.first.trim()
-        : placeholderAsset;
+  String get _fallbackAsset {
+    final index = int.tryParse(product.id) ?? product.id.hashCode;
+    return _assetFallbacks[index.abs() % _assetFallbacks.length];
+  }
 
-    if (source.startsWith('http')) {
-      return Image.network(
-        source,
-        width: width,
-        height: height,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => broken(),
-      );
-    }
-    return Image.asset(
-      source,
-      width: width,
-      height: height,
-      fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) => broken(),
-    );
+  /// The product's own artwork when present, otherwise its bundled stand-in.
+  String get _imageSource {
+    final own =
+        product.images.isNotEmpty ? product.images.first.trim() : '';
+    return own.isNotEmpty ? own : _fallbackAsset;
   }
 
   void _navigateToDetail(BuildContext context) {
-    List<String> assetImages = [
-      'assets/images/jean1.jpg',
-      'assets/images/green.jpg',
-      'assets/images/casual.jpg',
-      'assets/images/m2.jpg',
-      'assets/images/m3.jpg',
-      'assets/images/jean2.jpg',
-    ];
-    int index = int.tryParse(product.id) ?? product.id.hashCode;
-    String assetImage = assetImages[index % assetImages.length];
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ProductDetailPage(product: product, assetImage: assetImage),
+        builder: (context) =>
+            ProductDetailPage(product: product, assetImage: _fallbackAsset),
+      ),
+    );
+  }
+
+  void _toggleCart(BuildContext context, bool isInCart) {
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
+
+    if (isInCart) {
+      cartProvider.removeFromCart(product.id);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('${product.name} removed from cart'),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+      return;
+    }
+
+    cartProvider.addProduct({
+      'id': product.id,
+      'name': product.name,
+      'price': product.price,
+      'image': _imageSource,
+      'category': product.category ?? '',
+      'quantity': 1,
+      'size': product.sizes?.isNotEmpty == true ? product.sizes![0] : 'Default',
+    });
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text('${product.name} added to cart'),
+        duration: const Duration(seconds: 1),
       ),
     );
   }
@@ -78,266 +93,74 @@ class ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cartProvider = Provider.of<CartProvider>(context);
-    final bool isInCart = cartProvider.isProductInCart(product.id);
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isSmallScreen = screenWidth < 600;
-    
-    // Use product data if flag is set
-    if (useProductData && product.images.isNotEmpty) {
-      return GestureDetector(
-        onTap: () {
-          _navigateToDetail(context);
-        },
-        child: Container(
-          width: isHorizontal ? double.infinity : null,
-          margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 5,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: SizedBox(
-            height: isHorizontal ? 120 : 200,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  height: 110,
-                  width: double.infinity,
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(16),
-                      topRight: Radius.circular(16),
-                    ),
-                    child: _productImage(product.images[0],
-                        width: double.infinity, height: 110),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        product.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: AppTheme.textDark,
-                        ),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'PKR ${product.price.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              color: AppTheme.accentColor,
-                            ),
-                          ),
-                          _buildCartButton(context, isInCart),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-    
+    final isInCart = cartProvider.isProductInCart(product.id);
+
     return GestureDetector(
-      onTap: () {
-        _navigateToDetail(context);
-      },
+      onTap: () => _navigateToDetail(context),
       child: Container(
         width: isHorizontal ? double.infinity : null,
-        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        height: isHorizontal ? 116 : null,
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 5,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          color: AppTheme.surfaceRaised,
+          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+          border: Border.all(color: AppTheme.borderSoft),
         ),
-        child: SizedBox(
-          height: isHorizontal ? 120 : 200,
-          child: isHorizontal 
-            ? _buildHorizontalLayout(context, isInCart, isSmallScreen) 
-            : _buildVerticalLayout(context, isInCart, isSmallScreen),
-        ),
+        child: isHorizontal
+            ? _buildHorizontalLayout(context, isInCart)
+            : _buildVerticalLayout(context, isInCart),
       ),
     );
   }
 
-  Widget _buildVerticalLayout(BuildContext context, bool isInCart, bool isSmallScreen) {
-    // Use a fixed list of asset images and alternate by product index
-    List<Map<String, String>> assetImageData = [
-      {
-        'image': 'assets/images/jean1.jpg',
-        'title': 'Classic Blue Jeans',
-        'description': 'Comfortable and stylish blue jeans for everyday wear.'
-      },
-      {
-        'image': 'assets/images/green.jpg',
-        'title': 'Green Casual Shirt',
-        'description': 'Fresh green shirt for a smart casual look.'
-      },
-      {
-        'image': 'assets/images/casual.jpg',
-        'title': 'Casual T-Shirt',
-        'description': 'Soft and comfy t-shirt for relaxed days.'
-      },
-      {
-        'image': 'assets/images/m2.jpg',
-        'title': 'Modern Jacket',
-        'description': 'Trendy jacket to keep you warm and stylish.'
-      },
-      {
-        'image': 'assets/images/m3.jpg',
-        'title': 'Urban Hoodie',
-        'description': 'Perfect hoodie for urban adventures.'
-      },
-      {
-        'image': 'assets/images/jean2.jpg',
-        'title': 'Slim Fit Jeans',
-        'description': 'Slim fit jeans for a modern look.'
-      },
-    ];
-    int index = int.tryParse(product.id) ?? product.id.hashCode;
-    var assetData = assetImageData[index % assetImageData.length];
-    String assetImage = assetData['image']!;
+  // ---------------------------------------------------------------
+  // Layouts
+  // ---------------------------------------------------------------
+
+  /// Grid tile. The image takes whatever height the grid cell leaves over, so
+  /// the card always fills its slot exactly rather than trailing blank space.
+  Widget _buildVerticalLayout(BuildContext context, bool isInCart) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          height: 110,
-          width: double.infinity,
-          child: Stack(
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
-                ),
-                child: _productImage(assetImage,
-                    width: double.infinity, height: 110),
-              ),
-              
-              if (product.isNew || product.discount > 0)
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      if (product.isNew)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppTheme.accentColor,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text(
-                            'NEW',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 9,
-                            ),
-                          ),
-                        ),
-                      if (product.discount > 0)
-                        Container(
-                          margin: const EdgeInsets.only(top: 4),
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppTheme.error,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            '-${product.discount}%',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 9,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-            ],
+        Expanded(
+          child: SizedBox(
+            width: double.infinity,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                ProductImage(_imageSource, fit: BoxFit.cover),
+                _buildBadges(),
+              ],
+            ),
           ),
         ),
-        
         Padding(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.fromLTRB(10, 10, 10, 11),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                product.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: AppTheme.textDark,
+              // Fixed to two lines so prices stay on a common baseline across
+              // the row regardless of how long each name runs.
+              SizedBox(
+                height: 34,
+                child: Text(
+                  product.name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style:
+                      AppTheme.ui(13, weight: FontWeight.w500, height: 1.28),
                 ),
               ),
+              const SizedBox(height: 8),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    flex: 3,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (product.originalPrice != null && product.originalPrice! > product.price)
-                          Text(
-                            '\$${product.originalPrice!.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontSize: 10,
-                              decoration: TextDecoration.lineThrough,
-                              color: AppTheme.textLight,
-                            ),
-                          ),
-                        Text(
-                          'PKR ${product.price.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: AppTheme.accentColor,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: _buildCartButton(context, isInCart),
+                  Expanded(child: _buildPrice(17)),
+                  const SizedBox(width: 8),
+                  _CartButton(
+                    isInCart: isInCart,
+                    onTap: () => _toggleCart(context, isInCart),
                   ),
                 ],
               ),
@@ -348,104 +171,41 @@ class ProductCard extends StatelessWidget {
     );
   }
 
-  Widget _buildHorizontalLayout(BuildContext context, bool isInCart, bool isSmallScreen) {
-    // Use a fixed list of asset images and alternate by product index
-    List<Map<String, String>> assetImageData = [
-      {
-        'image': 'assets/images/jean1.jpg',
-        'title': 'Classic Blue Jeans',
-        'description': 'Comfortable and stylish blue jeans for everyday wear.'
-      },
-      {
-        'image': 'assets/images/green.jpg',
-        'title': 'Green Casual Shirt',
-        'description': 'Fresh green shirt for a smart casual look.'
-      },
-      {
-        'image': 'assets/images/casual.jpg',
-        'title': 'Casual T-Shirt',
-        'description': 'Soft and comfy t-shirt for relaxed days.'
-      },
-      {
-        'image': 'assets/images/m2.jpg',
-        'title': 'Modern Jacket',
-        'description': 'Trendy jacket to keep you warm and stylish.'
-      },
-      {
-        'image': 'assets/images/m3.jpg',
-        'title': 'Urban Hoodie',
-        'description': 'Perfect hoodie for urban adventures.'
-      },
-      {
-        'image': 'assets/images/jean2.jpg',
-        'title': 'Slim Fit Jeans',
-        'description': 'Slim fit jeans for a modern look.'
-      },
-    ];
-    int index = int.tryParse(product.id) ?? product.id.hashCode;
-    var assetData = assetImageData[index % assetImageData.length];
-    String assetImage = assetData['image']!;
+  Widget _buildHorizontalLayout(BuildContext context, bool isInCart) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        ClipRRect(
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(16),
-            bottomLeft: Radius.circular(16),
+        SizedBox(
+          width: 96,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              ProductImage(_imageSource, fit: BoxFit.cover),
+              _buildBadges(),
+            ],
           ),
-          child: _productImage(assetImage, width: 90, height: 120),
         ),
-
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   product.name,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: AppTheme.textDark,
-                  ),
+                  style: AppTheme.ui(14, weight: FontWeight.w500, height: 1.25),
                 ),
-                
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (product.originalPrice != null && product.originalPrice! > product.price)
-                            Text(
-                              '\$${product.originalPrice!.toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                fontSize: 10,
-                                decoration: TextDecoration.lineThrough,
-                                color: AppTheme.textLight,
-                              ),
-                            ),
-                          Text(
-                            'PKR ${product.price.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              color: AppTheme.accentColor,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
+                    Expanded(child: _buildPrice(18)),
+                    const SizedBox(width: 8),
+                    _CartButton(
+                      isInCart: isInCart,
+                      onTap: () => _toggleCart(context, isInCart),
                     ),
-                    
-                    _buildSmallCartButton(context, isInCart),
                   ],
                 ),
               ],
@@ -456,150 +216,110 @@ class ProductCard extends StatelessWidget {
     );
   }
 
-  Widget _buildSmallCartButton(BuildContext context, bool isInCart) {
-    final cartProvider = Provider.of<CartProvider>(context, listen: false);
-    
-    return Container(
-      height: 32,
-      width: 32,
-      decoration: BoxDecoration(
-        gradient: isInCart 
-          ? const LinearGradient(
-              colors: [Color(0xFF43A047), Color(0xFF2E7D32)],  // Success colors
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            )
-          : AppTheme.brandGradient,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: isInCart 
-              ? AppTheme.success.withValues(alpha: 0.2)
-              : AppTheme.brandPrimary.withValues(alpha: 0.2),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
+  // ---------------------------------------------------------------
+  // Pieces
+  // ---------------------------------------------------------------
+
+  Widget _buildPrice(double size) {
+    final original = product.originalPrice;
+    final hasOriginal = original != null && original > product.price;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (hasOriginal)
+          Text(
+            formatPkr(original),
+            maxLines: 1,
+            style: AppTheme.ui(11, color: AppTheme.textMuted).copyWith(
+              decoration: TextDecoration.lineThrough,
+            ),
           ),
-        ],
-      ),
-      child: IconButton(
-        padding: EdgeInsets.zero,
-        icon: Icon(
-          isInCart ? Icons.check : Icons.add_shopping_cart,
-          color: Colors.white,
-          size: 16,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            formatPkr(product.price),
+            maxLines: 1,
+            style: AppTheme.display(size),
+          ),
         ),
-        onPressed: () {
-          if (isInCart) {
-            cartProvider.removeFromCart(product.id);
-          } else {
-            // Build cart item with the same image that is currently shown
-            String imgPath;
-            if (product.images.isNotEmpty) {
-              imgPath = product.images[0];
-            } else {
-              List<String> assetImages = [
-                'assets/images/jean1.jpg',
-                'assets/images/green.jpg',
-                'assets/images/casual.jpg',
-                'assets/images/m2.jpg',
-                'assets/images/m3.jpg',
-                'assets/images/jean2.jpg',
-              ];
-              int index = int.tryParse(product.id) ?? product.id.hashCode;
-              imgPath = assetImages[index % assetImages.length];
-            }
-            cartProvider.addProduct({
-              'id': product.id,
-              'name': product.name,
-              'price': product.price,
-              'image': imgPath,
-              'category': product.category ?? '',
-              'quantity': 1,
-              'size': product.sizes?.isNotEmpty == true ? product.sizes![0] : 'Default',
-            });
-          }
-        },
-      ),
+      ],
     );
   }
 
-  Widget _buildCartButton(BuildContext context, bool isInCart) {
-    final cartProvider = Provider.of<CartProvider>(context, listen: false);
-    
-    return Container(
-      height: 36,
-      decoration: BoxDecoration(
-        gradient: isInCart 
-          ? const LinearGradient(
-              colors: [Color(0xFF43A047), Color(0xFF2E7D32)],  // Success colors
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            )
-          : AppTheme.brandGradient,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: isInCart 
-              ? AppTheme.success.withValues(alpha: 0.3)
-              : AppTheme.brandPrimary.withValues(alpha: 0.3),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
+  Widget _buildBadges() {
+    if (!product.isNew && product.discount <= 0) {
+      return const SizedBox.shrink();
+    }
+
+    return Positioned(
+      top: 8,
+      left: 8,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (product.isNew) const _Badge('New', color: AppTheme.ink),
+          if (product.discount > 0)
+            Padding(
+              padding: EdgeInsets.only(top: product.isNew ? 4 : 0),
+              child: _Badge('-${product.discount}%', color: AppTheme.accent),
+            ),
         ],
-      ),
-      child: IconButton(
-        padding: EdgeInsets.zero,
-        icon: Icon(
-          isInCart ? Icons.check : Icons.add_shopping_cart,
-          color: Colors.white,
-          size: 18,
-        ),
-        onPressed: () {
-          if (isInCart) {
-            cartProvider.removeFromCart(product.id);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('${product.name} removed from cart'),
-                duration: const Duration(seconds: 1),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          } else {
-            // Build cart item with the same image that is currently shown
-            String imgPath;
-            if (product.images.isNotEmpty) {
-              imgPath = product.images[0];
-            } else {
-              List<String> assetImages = [
-                'assets/images/jean1.jpg',
-                'assets/images/green.jpg',
-                'assets/images/casual.jpg',
-                'assets/images/m2.jpg',
-                'assets/images/m3.jpg',
-                'assets/images/jean2.jpg',
-              ];
-              int index = int.tryParse(product.id) ?? product.id.hashCode;
-              imgPath = assetImages[index % assetImages.length];
-            }
-            cartProvider.addProduct({
-              'id': product.id,
-              'name': product.name,
-              'price': product.price,
-              'image': imgPath,
-              'category': product.category ?? '',
-              'quantity': 1,
-              'size': product.sizes?.isNotEmpty == true ? product.sizes![0] : 'Default',
-            });
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('${product.name} added to cart'),
-                duration: const Duration(seconds: 1),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          }
-        },
       ),
     );
   }
-} 
+}
+
+/// Small overlay pill for NEW / discount markers.
+class _Badge extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _Badge(this.label, {required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(AppTheme.radiusSm - 4),
+      ),
+      child: Text(
+        label.toUpperCase(),
+        style: AppTheme.mono(9, color: Colors.white, tracking: 0.06),
+      ),
+    );
+  }
+}
+
+/// Compact circular add/remove control. Kept small so the price beside it
+/// never has to truncate.
+class _CartButton extends StatelessWidget {
+  final bool isInCart;
+  final VoidCallback onTap;
+
+  const _CartButton({required this.isInCart, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 34,
+        height: 34,
+        decoration: BoxDecoration(
+          color: isInCart ? AppTheme.positive : AppTheme.accent,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          isInCart ? Icons.check : Icons.add,
+          color: Colors.white,
+          size: 19,
+        ),
+      ),
+    );
+  }
+}

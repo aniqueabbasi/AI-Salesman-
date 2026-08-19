@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart' show MediaType;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/Product.dart';
@@ -286,8 +287,134 @@ class ApiService {
     }
   }
 
+  // ---------------------------------------------------------------
+  // Seller-scoped reads. Each is filtered server-side to the signed-in
+  // seller's own listings, so one shop never sees another's figures.
+  // ---------------------------------------------------------------
+
+  /// The signed-in account's own profile.
+  static Future<Map<String, dynamic>> getMyProfile() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/auth/me'),
+      headers: await _getHeaders(),
+    ).timeout(const Duration(seconds: 20));
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load profile: ${_errorDetail(response.body)}');
+    }
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  /// Update contact details. Omitted fields are left untouched server-side.
+  static Future<Map<String, dynamic>> updateMyProfile({
+    String? fullName,
+    String? phone,
+    String? shopName,
+  }) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/auth/me'),
+      headers: await _getHeaders(),
+      body: jsonEncode({
+        if (fullName != null) 'full_name': fullName,
+        if (phone != null) 'phone': phone,
+        if (shopName != null) 'shop_name': shopName,
+      }),
+    ).timeout(const Duration(seconds: 20));
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to save profile: ${_errorDetail(response.body)}');
+    }
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  /// Dashboard headline figures: 30-day revenue, order counts, dispatch queue.
+  static Future<Map<String, dynamic>> getSellerSummary() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/analytics/seller/summary'),
+      headers: await _getHeaders(),
+    ).timeout(const Duration(seconds: 20));
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load summary: ${_errorDetail(response.body)}');
+    }
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  /// Orders containing at least one of this seller's products.
+  static Future<List<Map<String, dynamic>>> getSellerOrders() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/orders/seller'),
+      headers: await _getHeaders(),
+    ).timeout(const Duration(seconds: 20));
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load orders: ${_errorDetail(response.body)}');
+    }
+    return (jsonDecode(response.body) as List)
+        .cast<Map<String, dynamic>>();
+  }
+
+  /// Weekly sales series, AOV, return rate and best sellers.
+  static Future<Map<String, dynamic>> getSellerReport() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/reports/seller/sales'),
+      headers: await _getHeaders(),
+    ).timeout(const Duration(seconds: 20));
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load report: ${_errorDetail(response.body)}');
+    }
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  static Future<void> updateSellerOrderStatus(
+      String orderId, String status) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/orders/seller/$orderId/status?status=$status'),
+      headers: await _getHeaders(),
+    ).timeout(const Duration(seconds: 20));
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update order: ${_errorDetail(response.body)}');
+    }
+  }
+
+  /// Set stock on a listing this seller owns.
+  static Future<void> updateProductStock(String productId, int stock) async {
+    final response = await http.patch(
+      Uri.parse('$baseUrl/products/$productId/stock?stock=$stock'),
+      headers: await _getHeaders(),
+    ).timeout(const Duration(seconds: 20));
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update stock: ${_errorDetail(response.body)}');
+    }
+  }
+
   /// Upload a product photo and get back a URL to store on the product.
+  /// Image formats the API accepts, keyed by file extension.
+  static const Map<String, String> _imageSubtypes = {
+    '.jpg': 'jpeg',
+    '.jpeg': 'jpeg',
+    '.png': 'png',
+    '.webp': 'webp',
+    '.gif': 'gif',
+  };
+
   static Future<String> uploadProductImage(File image) async {
+    // MultipartFile defaults to application/octet-stream, which the API
+    // rejects, so the type has to be derived from the file itself.
+    final dotIndex = image.path.lastIndexOf('.');
+    final extension =
+        dotIndex == -1 ? '' : image.path.substring(dotIndex).toLowerCase();
+    final subtype = _imageSubtypes[extension];
+
+    if (subtype == null) {
+      throw Exception(
+        'Unsupported image format "$extension". Use a JPEG, PNG, WEBP or GIF.',
+      );
+    }
+
     final request = http.MultipartRequest(
       'POST',
       Uri.parse('$baseUrl/products/upload-image'),
@@ -297,7 +424,11 @@ class ApiService {
     if (token != null) {
       request.headers['Authorization'] = 'Bearer $token';
     }
-    request.files.add(await http.MultipartFile.fromPath('file', image.path));
+    request.files.add(await http.MultipartFile.fromPath(
+      'file',
+      image.path,
+      contentType: MediaType('image', subtype),
+    ));
 
     final streamed = await request.send().timeout(const Duration(seconds: 60));
     final response = await http.Response.fromStream(streamed);

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:prac/AppScreens/Seller/SellerDashboard.dart';
 import 'package:prac/Authentication/SignUp.dart';
+import 'package:prac/res/app_theme.dart';
+import 'package:prac/res/ui_kit.dart';
 import 'package:prac/services/api_service.dart';
 import 'package:prac/services/auth_service.dart';
 import 'ResetPassword.dart';
@@ -16,6 +18,7 @@ class _LoginState extends State<Login> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true;
   String _errorMessage = '';
 
   Future<void> _login() async {
@@ -66,150 +69,129 @@ class _LoginState extends State<Login> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SizedBox(
-        height: MediaQuery.of(context).size.height, // Full height of the screen
-        width: MediaQuery.of(context).size.width, // Full width of the screen
-        child: Stack(
-          children: [
-            // Background Image
-
-            Positioned.fill(
-              child: Image.asset(
-                'assets/images/bk9.jpg', // Replace with your background image path
-                fit: BoxFit.cover, // Ensures the image covers the whole screen
-              ),
+      backgroundColor: AppTheme.surface,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(30, 56, 30, 34),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height - 90,
             ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Welcome back', style: AppTheme.display(44)),
+                const SizedBox(height: 10),
+                Text(
+                  'Signing in returns a 12-hour token.',
+                  style: AppTheme.ui(16, color: AppTheme.textMuted),
+                ),
+                const SizedBox(height: 36),
 
-            // Content on top of the background
-            SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(
-                    height: 120,
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.only(left: 20),
-                    child: Text(
-                      "Login",
-                      style:
-                          TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.only(left: 22),
-                    child: Text(
-                      'Good to see you back!',
-                      style: TextStyle(color: Colors.black54, fontSize: 17),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 40,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextFormField(
-                      controller: _emailController,
-                      decoration: InputDecoration(
-                        hintText: "Email",
-                        hintStyle: const TextStyle(color: Colors.white),
-                        filled: true,
-                        fillColor: Colors.black,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(28),
+                const Eyebrow('Email'),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  autocorrect: false,
+                  style: AppTheme.ui(17),
+                  decoration: const InputDecoration(hintText: 'you@example.com'),
+                ),
+                const SizedBox(height: 24),
+
+                const Eyebrow('Password'),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  style: AppTheme.ui(17),
+                  decoration: InputDecoration(
+                    hintText: '••••••••',
+                    suffixIcon: GestureDetector(
+                      onTap: () => setState(
+                          () => _obscurePassword = !_obscurePassword),
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: Text(
+                          _obscurePassword ? 'Show' : 'Hide',
+                          style: AppTheme.ui(14, color: AppTheme.textMuted),
                         ),
                       ),
-                      style: const TextStyle(color: Colors.white),
                     ),
+                    suffixIconConstraints:
+                        const BoxConstraints(minWidth: 54, minHeight: 24),
                   ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextFormField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        hintText: "Password",
-                        hintStyle: const TextStyle(color: Colors.white),
-                        filled: true,
-                        fillColor: Colors.black,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(28),
+                ),
+
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Text('Remember me',
+                        style: AppTheme.ui(15, color: AppTheme.textSecondary)),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const ResetPassword()),
+                      ),
+                      child: Text('Forgot password?',
+                          style: AppTheme.ui(15,
+                              color: AppTheme.accent,
+                              weight: FontWeight.w500)),
+                    ),
+                  ],
+                ),
+
+                if (_errorMessage.isNotEmpty) ...[
+                  const SizedBox(height: 20),
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: AppTheme.accentWash,
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.radiusMd),
+                      border: Border.all(color: AppTheme.accentWashBorder),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.error_outline,
+                            color: AppTheme.accentPressed, size: 20),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(_errorMessage,
+                              style: AppTheme.ui(14,
+                                  color: AppTheme.accentPressed)),
                         ),
-                      ),
-                      style: const TextStyle(color: Colors.white),
+                      ],
                     ),
                   ),
-                  if (_errorMessage.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Text(
-                        _errorMessage,
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                    ),
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _login,
-                      style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(28)),
-                          backgroundColor: const Color.fromARGB(255, 94, 50, 251),
-                          minimumSize: const Size(420, 50)),
-                      child: _isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text(
-                              "Login",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white70),
-                            ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 40,
-                  ),
-                  Center(
-                      child: InkWell(
-                          onTap: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const ResetPassword()));
-                          },
-                          child: const Text(
-                            'Forgot your password',
-                            style:
-                                TextStyle(color: Colors.black54, fontSize: 17),
-                          ))),
-                  const SizedBox(
-                    height: 15,
-                  ),
-                  Center(
-                      child: InkWell(
-                          onTap: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => const SignUp()));
-                          },
-                          child: const Text(
-                            'Create an Account',
-                            style:
-                                TextStyle(color: Colors.black54, fontSize: 17),
-                          ))),
                 ],
-              ),
+
+                const SizedBox(height: 32),
+                PrimaryButton('Sign in',
+                    onPressed: _login, isBusy: _isLoading),
+                const SizedBox(height: 16),
+                SecondaryButton(
+                  'Create an account',
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SignUp()),
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+                Center(
+                  child: Text(
+                    'Sellers sign in here too — you land on your dashboard.',
+                    textAlign: TextAlign.center,
+                    style: AppTheme.ui(14, color: AppTheme.textMuted),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
